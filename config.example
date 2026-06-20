@@ -13,7 +13,8 @@ SERVER_NAME="server-1"
 # Root scanned for sites. Forge isolated users each get a home under here.
 SITES_ROOT="/home"
 
-# Log file path.
+# Log file path. The installer derives this from the run user's home
+# (e.g. /home/<run-user>/forge-backup.log). Use that user's home here.
 LOG="/home/forge/forge-backup.log"
 
 # WordPress media dir, relative to a site root.

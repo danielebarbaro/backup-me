@@ -47,7 +47,7 @@ Config lives at `/etc/forge-backup/config` (mode `0600`). It is sourced as bash.
 | `BUCKET` | Spaces bucket name. |
 | `SERVER_NAME` | Unique per server. Namespaces objects in the bucket. |
 | `SITES_ROOT` | Root scanned for sites. Default `/home`. |
-| `LOG` | Log file path. |
+| `LOG` | Log file path. The installer derives it from the run user's home. |
 | `WP_UPLOADS` | WordPress media dir, relative to a site root. |
 | `JOOMLA_DIRS` | Joomla media dirs, relative to a site root. |
 
@@ -95,7 +95,7 @@ rclone copy spaces:<bucket>/uploads-mirror/<server>/<owner>/<site>/ /path/to/sit
 
 ## Troubleshooting
 
-* Log file: `/home/forge/forge-backup.log`.
+* Log file: `forge-backup.log` in the run user's home (for the `forge` user, `/home/forge/forge-backup.log`). The path is set by `LOG` in the config.
 * Dry run to debug discovery and connectivity: `forge-backup uploads --dry-run`.
 * "config not found": the installer did not complete, or `/etc/forge-backup/config` is missing.
 * rclone auth errors: check the endpoint and credentials in `~/.config/rclone/rclone.conf`.

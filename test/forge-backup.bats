@@ -15,7 +15,7 @@ setup() {
   printf 'REMOTE=spaces\nBUCKET=b\nSERVER_NAME=s1\nSITES_ROOT=/tmp\nLOG=/tmp/fb.log\nWP_UPLOADS=wp-content/uploads\nJOOMLA_DIRS=(images)\n' > "$cfg"
   run env FORGE_BACKUP_CONFIG="$cfg" bash "$SCRIPT" bogus
   [ "$status" -ne 0 ]
-  [[ "$output" == *"Uso:"* ]]
+  [[ "$output" == *"Usage:"* ]]
   rm -f "$cfg"
 }
 

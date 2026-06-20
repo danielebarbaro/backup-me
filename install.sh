@@ -10,9 +10,6 @@ BIN="/usr/local/bin/forge-backup"
 CONFIG_DIR="/etc/forge-backup"
 CONFIG="$CONFIG_DIR/config"
 CRON="/etc/cron.d/forge-backup"
-RUN_USER="${SUDO_USER:-${USER:-forge}}"
-# shellcheck disable=SC2086,SC2116
-RCLONE_CONF="$(eval echo "~$RUN_USER")/.config/rclone/rclone.conf"
 
 say()  { printf '\n>> %s\n' "$*"; }
 die()  { printf 'ERROR: %s\n' "$*" >&2; exit 1; }
@@ -42,6 +39,13 @@ read -r -p "Spaces access key: " ACCESS_KEY
 [ -n "$ACCESS_KEY" ] || die "Access key is required."
 read -r -s -p "Spaces secret key: " SECRET_KEY; echo
 [ -n "$SECRET_KEY" ] || die "Secret key is required."
+read -r -p "User that runs backups [forge]: " RUN_USER_INPUT
+RUN_USER="${RUN_USER_INPUT:-forge}"
+id "$RUN_USER" >/dev/null 2>&1 || die "User '$RUN_USER' does not exist on this server."
+# shellcheck disable=SC2086,SC2116
+RUN_HOME="$(eval echo "~$RUN_USER")"
+RCLONE_CONF="$RUN_HOME/.config/rclone/rclone.conf"
+LOG_PATH="$RUN_HOME/forge-backup.log"
 
 # 3. Write rclone.conf for the run user.
 say "Writing rclone config to $RCLONE_CONF"
@@ -69,7 +73,7 @@ REMOTE="spaces"
 BUCKET="$BUCKET"
 SERVER_NAME="$SERVER_NAME"
 SITES_ROOT="/home"
-LOG="/home/forge/forge-backup.log"
+LOG="$LOG_PATH"
 WP_UPLOADS="wp-content/uploads"
 JOOMLA_DIRS=("images" "media" "attachments")
 EOF
@@ -88,8 +92,8 @@ cat > "$CRON" <<EOF
 # forge-backup. Managed by install.sh. uploads daily 02:30, full weekly Sun 03:30.
 SHELL=/bin/bash
 PATH=/usr/local/bin:/usr/bin:/bin
-30 2 * * *   $RUN_USER  forge-backup uploads >> /home/forge/forge-backup.log 2>&1
-30 3 * * 0   $RUN_USER  forge-backup full    >> /home/forge/forge-backup.log 2>&1
+30 2 * * *   $RUN_USER  forge-backup uploads >> $LOG_PATH 2>&1
+30 3 * * 0   $RUN_USER  forge-backup full    >> $LOG_PATH 2>&1
 EOF
 chmod 644 "$CRON"
 

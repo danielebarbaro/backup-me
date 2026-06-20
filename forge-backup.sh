@@ -46,6 +46,11 @@ if [ -z "${TAR_EXCLUDES+x}" ]; then
   )
 fi
 
+# Default Joomla media dirs. Override in config if needed.
+if [ -z "${JOOMLA_DIRS+x}" ]; then
+  JOOMLA_DIRS=("images" "media" "attachments")
+fi
+
 RCLONE_FLAGS=(--transfers 4 --checkers 8 --log-file "$LOG" --log-level INFO)
 
 log() { echo "$(date '+%F %T') [${MODE:-?}] $*" >> "$LOG"; }
@@ -67,6 +72,8 @@ sync_uploads() {
   rclone copy "$src" \
     "${REMOTE}:${BUCKET}/uploads-mirror/${SERVER_NAME}/${owner}/${site}/${label}/" \
     "${RCLONE_FLAGS[@]}" $DRY_RUN
+  local rc=$?
+  [ $rc -ne 0 ] && { log "ERROR: uploads failed for $owner/$site/$label (rc=$rc)"; FAILURES=$((FAILURES+1)); }
 }
 
 # Dated tar.gz of a whole site, streamed straight to Spaces.
@@ -82,7 +89,7 @@ archive_full() {
   tar czf - "${TAR_EXCLUDES[@]}" -C "$dir" . 2>>"$LOG" \
     | rclone rcat "$dest" --log-file "$LOG" --log-level INFO
   local rc=$?
-  [ $rc -ne 0 ] && log "ERRORE: archive fallito per $site (rc=$rc)"
+  [ $rc -ne 0 ] && { log "ERROR: archive failed for $site (rc=$rc)"; FAILURES=$((FAILURES+1)); }
 }
 
 # Allow tests to source functions without running a backup.
@@ -94,11 +101,19 @@ DRY_RUN=""
 [ "${2:-}" = "--dry-run" ] && DRY_RUN="--dry-run"
 
 if [ "$MODE" != "uploads" ] && [ "$MODE" != "full" ]; then
-  echo "Uso: $0 {uploads|full} [--dry-run]" >&2
+  echo "Usage: $0 {uploads|full} [--dry-run]" >&2
   exit 1
 fi
 
 DATE="$(date +%F)"
+
+mkdir -p "$(dirname "$LOG")" 2>/dev/null
+if ! { : >> "$LOG"; } 2>/dev/null; then
+  echo "forge-backup: log file not writable: $LOG" >&2
+  exit 1
+fi
+
+FAILURES=0
 log "=== START (server=$SERVER_NAME${DRY_RUN:+ DRY-RUN}) ==="
 
 if [ "$MODE" = "full" ]; then
@@ -128,3 +143,8 @@ else
 fi
 
 log "=== DONE ==="
+
+if [ "$FAILURES" -gt 0 ]; then
+  log "=== FAILED: $FAILURES error(s) ==="
+  exit 1
+fi

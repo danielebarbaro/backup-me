@@ -1,0 +1,5 @@
+# Never commit secrets, generated config, or runtime artifacts
+config
+rclone.conf
+*.log
+.DS_Store

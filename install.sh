@@ -75,6 +75,7 @@ JOOMLA_DIRS=("images" "media" "attachments")
 EOF
 umask 022
 chmod 600 "$CONFIG"
+chown "$RUN_USER":"$RUN_USER" "$CONFIG"
 
 # 5. Install the script.
 say "Installing $BIN"

@@ -22,7 +22,7 @@ It scans every home under `/home`, finds each WordPress and Joomla install (nest
 Run on each server. Pick a unique `SERVER_NAME` per server (server-1, server-2, ...).
 
 ```bash
-curl -fsSL https://raw.githubusercontent.com/<owner>/forge-backup/main/install.sh | sudo bash
+curl -fsSL https://raw.githubusercontent.com/danielebarbaro/backup-me/main/install.sh | sudo bash
 ```
 
 The installer checks dependencies, prompts for the server name, bucket, and Spaces credentials, writes the rclone config and the forge-backup config, installs the command to `/usr/local/bin/forge-backup`, and schedules cron. It finishes with a dry run so you can confirm discovery and connectivity.

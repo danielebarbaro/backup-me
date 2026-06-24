@@ -1,11 +1,11 @@
 #!/usr/bin/env bash
 #
 # forge-backup installer. Run on each Forge server:
-#   curl -fsSL https://raw.githubusercontent.com/<owner>/forge-backup/main/install.sh | bash
+#   curl -fsSL https://raw.githubusercontent.com/danielebarbaro/backup-me/main/install.sh | bash
 #
 set -uo pipefail
 
-REPO_RAW="${FORGE_BACKUP_REPO_RAW:-https://raw.githubusercontent.com/<owner>/forge-backup/main}"
+REPO_RAW="${FORGE_BACKUP_REPO_RAW:-https://raw.githubusercontent.com/danielebarbaro/backup-me/main}"
 BIN="/usr/local/bin/forge-backup"
 CONFIG_DIR="/etc/forge-backup"
 CONFIG="$CONFIG_DIR/config"

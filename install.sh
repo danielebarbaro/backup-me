@@ -17,29 +17,33 @@ need_root() { [ "$(id -u)" -eq 0 ] || die "Run as root or with sudo (writes to /
 
 need_root
 
+# Prompts must read from the terminal, not stdin: `curl ... | bash` leaves stdin
+# bound to the piped script, so interactive `read` would get EOF.
+[ -r /dev/tty ] || die "No terminal for prompts. Download install.sh and run it directly (e.g. 'sudo bash install.sh'), not piped."
+
 # 1. Dependency check.
 say "Checking dependencies"
 command -v tar  >/dev/null || die "tar not found."
 command -v find >/dev/null || die "find not found."
 if ! command -v rclone >/dev/null; then
-  read -r -p "rclone not found. Install it now via the official script? [y/N] " ans
+  read -r -p "rclone not found. Install it now via the official script? [y/N] " ans </dev/tty
   [ "$ans" = "y" ] || die "rclone is required. Install it and re-run."
   curl -fsSL https://rclone.org/install.sh | bash || die "rclone install failed."
 fi
 
 # 2. Prompt for config.
 say "Configuration"
-read -r -p "SERVER_NAME (unique, e.g. server-1): " SERVER_NAME
+read -r -p "SERVER_NAME (unique, e.g. server-1): " SERVER_NAME </dev/tty
 [ -n "$SERVER_NAME" ] || die "SERVER_NAME is required."
-read -r -p "Spaces bucket name: " BUCKET
+read -r -p "Spaces bucket name: " BUCKET </dev/tty
 [ -n "$BUCKET" ] || die "Bucket is required."
-read -r -p "Spaces endpoint (e.g. fra1.digitaloceanspaces.com): " ENDPOINT
+read -r -p "Spaces endpoint (e.g. fra1.digitaloceanspaces.com): " ENDPOINT </dev/tty
 [ -n "$ENDPOINT" ] || die "Endpoint is required."
-read -r -p "Spaces access key: " ACCESS_KEY
+read -r -p "Spaces access key: " ACCESS_KEY </dev/tty
 [ -n "$ACCESS_KEY" ] || die "Access key is required."
-read -r -s -p "Spaces secret key: " SECRET_KEY; echo
+read -r -s -p "Spaces secret key: " SECRET_KEY </dev/tty; echo
 [ -n "$SECRET_KEY" ] || die "Secret key is required."
-read -r -p "User that runs backups [forge]: " RUN_USER_INPUT
+read -r -p "User that runs backups [forge]: " RUN_USER_INPUT </dev/tty
 RUN_USER="${RUN_USER_INPUT:-forge}"
 id "$RUN_USER" >/dev/null 2>&1 || die "User '$RUN_USER' does not exist on this server."
 # shellcheck disable=SC2086,SC2116

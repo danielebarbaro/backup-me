@@ -65,32 +65,32 @@ Edit that file to change timing.
 The script never deletes old archives. Set retention with a Spaces lifecycle rule so storage does not grow forever.
 
 1. Open the DigitalOcean control panel, go to your Space, then Settings.
-2. Add a lifecycle rule scoped to the prefix `full-archives/`.
+2. Add a lifecycle rule scoped to the prefix `<server>/full/`.
 3. Set it to expire objects after N days (for example 30).
 
-The `uploads-mirror/` prefix is a live mirror of current media, so leave it without an expiry rule.
+The `<server>/uploads/` prefix is a live mirror of current media, so leave it without an expiry rule.
 
 ## Restore
 
 Full archive:
 
 ```bash
-rclone copy spaces:<bucket>/full-archives/<server>/<owner>/<site>/<date>.tar.gz .
+rclone copy spaces:<bucket>/<server>/full/<site>/<date>.tar.gz .
 tar xzf <date>.tar.gz -C /path/to/restore
 ```
 
 Media only:
 
 ```bash
-rclone copy spaces:<bucket>/uploads-mirror/<server>/<owner>/<site>/ /path/to/site/wp-content/uploads/
+rclone copy spaces:<bucket>/<server>/uploads/<site>/ /path/to/site/wp-content/uploads/
 ```
 
 ## Bucket layout
 
 ```
 <bucket>/
-  uploads-mirror/<server>/<owner>/<site>/<label>/   # live media mirror
-  full-archives/<server>/<owner>/<site>/<date>.tar.gz
+  <server>/uploads/<site>/<label>/   # live media mirror
+  <server>/full/<site>/<date>.tar.gz
 ```
 
 ## Troubleshooting

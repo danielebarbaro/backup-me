@@ -70,7 +70,7 @@ sync_uploads() {
   log "uploads $owner/$site/$label <- $src"
   # shellcheck disable=SC2086
   rclone copy "$src" \
-    "${REMOTE}:${BUCKET}/uploads-mirror/${SERVER_NAME}/${owner}/${site}/${label}/" \
+    "${REMOTE}:${BUCKET}/${SERVER_NAME}/uploads/${site}/${label}/" \
     "${RCLONE_FLAGS[@]}" $DRY_RUN
   local rc=$?
   [ $rc -ne 0 ] && { log "ERROR: uploads failed for $owner/$site/$label (rc=$rc)"; FAILURES=$((FAILURES+1)); }
@@ -79,7 +79,7 @@ sync_uploads() {
 # Dated tar.gz of a whole site, streamed straight to Spaces.
 archive_full() {
   local owner="$1" site="$2" dir="$3"
-  local dest="${REMOTE}:${BUCKET}/full-archives/${SERVER_NAME}/${owner}/${site}/${DATE}.tar.gz"
+  local dest="${REMOTE}:${BUCKET}/${SERVER_NAME}/full/${site}/${DATE}.tar.gz"
   log "full $owner/$site -> $dest"
   if [ -n "$DRY_RUN" ]; then
     log "DRY-RUN: tar czf - -C $dir . | rclone rcat $dest"

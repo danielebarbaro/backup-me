@@ -43,6 +43,9 @@ read -r -p "Spaces access key: " ACCESS_KEY </dev/tty
 [ -n "$ACCESS_KEY" ] || die "Access key is required."
 read -r -s -p "Spaces secret key: " SECRET_KEY </dev/tty; echo
 [ -n "$SECRET_KEY" ] || die "Secret key is required."
+read -r -p "Full archives to keep per site (0 = keep all) [14]: " KEEP_FULL_INPUT </dev/tty
+KEEP_FULL="${KEEP_FULL_INPUT:-14}"
+[[ "$KEEP_FULL" =~ ^[0-9]+$ ]] || die "Retention must be a non-negative integer."
 read -r -p "User that runs backups [forge]: " RUN_USER_INPUT </dev/tty
 RUN_USER="${RUN_USER_INPUT:-forge}"
 id "$RUN_USER" >/dev/null 2>&1 || die "User '$RUN_USER' does not exist on this server."
@@ -80,6 +83,7 @@ SITES_ROOT="/home"
 LOG="$LOG_PATH"
 WP_UPLOADS="wp-content/uploads"
 JOOMLA_DIRS=("images" "media" "attachments")
+KEEP_FULL=$KEEP_FULL
 EOF
 umask 022
 chmod 600 "$CONFIG"

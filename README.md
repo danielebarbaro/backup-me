@@ -50,6 +50,7 @@ Config lives at `/etc/forge-backup/config` (mode `0600`). It is sourced as bash.
 | `LOG` | Log file path. The installer derives it from the run user's home. |
 | `WP_UPLOADS` | WordPress media dir, relative to a site root. |
 | `JOOMLA_DIRS` | Joomla media dirs, relative to a site root. |
+| `KEEP_FULL` | How many dated full archives to keep per site. Default 14. `0` keeps everything. |
 
 ## Cron schedule
 
@@ -60,15 +61,13 @@ The installer writes `/etc/cron.d/forge-backup`:
 
 Edit that file to change timing.
 
-## Retention (DigitalOcean Spaces lifecycle)
+## Retention
 
-The script never deletes old archives. Set retention with a Spaces lifecycle rule so storage does not grow forever.
+After each successful `full` upload the script prunes the site's own prefix, keeping the newest `KEEP_FULL` archives (default 14, about three months of weekly runs). Archive names are dated, so "newest" is the date in the filename. Set `KEEP_FULL=0` to disable pruning and keep everything. A failed archive skips the prune, so old copies are never dropped to make room for a backup that did not land.
 
-1. Open the DigitalOcean control panel, go to your Space, then Settings.
-2. Add a lifecycle rule scoped to the prefix `<server>/full/`.
-3. Set it to expire objects after N days (for example 30).
+The `<server>/uploads/` prefix is a live mirror of current media, so it is never pruned.
 
-The `<server>/uploads/` prefix is a live mirror of current media, so leave it without an expiry rule.
+If you prefer age based retention instead, set `KEEP_FULL=0` and add a Spaces lifecycle rule scoped to the prefix `<server>/full/` that expires objects after N days.
 
 ## Restore
 

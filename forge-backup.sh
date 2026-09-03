@@ -51,6 +51,13 @@ if [ -z "${JOOMLA_DIRS+x}" ]; then
   JOOMLA_DIRS=("images" "media" "attachments")
 fi
 
+# How many dated full archives to keep per site. 0 disables pruning.
+KEEP_FULL="${KEEP_FULL:-14}"
+if ! [[ "$KEEP_FULL" =~ ^[0-9]+$ ]]; then
+  echo "forge-backup: KEEP_FULL must be a non-negative integer (got '$KEEP_FULL')" >&2
+  exit 1
+fi
+
 RCLONE_FLAGS=(--transfers 4 --checkers 8 --log-file "$LOG" --log-level INFO)
 
 log() { echo "$(date '+%F %T') [${MODE:-?}] $*" >> "$LOG"; }
@@ -77,19 +84,49 @@ sync_uploads() {
 }
 
 # Dated tar.gz of a whole site, streamed straight to Spaces.
+# Returns non-zero if the archive failed, so the caller can skip pruning.
 archive_full() {
   local owner="$1" site="$2" dir="$3"
   local dest="${REMOTE}:${BUCKET}/${SERVER_NAME}/full/${site}/${DATE}.tar.gz"
   log "full $owner/$site -> $dest"
   if [ -n "$DRY_RUN" ]; then
     log "DRY-RUN: tar czf - -C $dir . | rclone rcat $dest"
-    return
+    return 0
   fi
   # shellcheck disable=SC2094
   tar czf - "${TAR_EXCLUDES[@]}" -C "$dir" . 2>>"$LOG" \
     | rclone rcat "$dest" --log-file "$LOG" --log-level INFO
   local rc=$?
   [ $rc -ne 0 ] && { log "ERROR: archive failed for $site (rc=$rc)"; FAILURES=$((FAILURES+1)); }
+  return $rc
+}
+
+# Keep only the newest KEEP_FULL archives for a site. Names are dated
+# (YYYY-MM-DD.tar.gz), so a lexicographic sort is chronological.
+prune_full() {
+  local site="$1"
+  [ "$KEEP_FULL" -eq 0 ] && return 0
+  local prefix="${REMOTE}:${BUCKET}/${SERVER_NAME}/full/${site}/"
+
+  local listing count excess old
+  listing="$(rclone lsf "$prefix" --include '*.tar.gz' \
+    --log-file "$LOG" --log-level INFO 2>/dev/null | sort)"
+  count="$(printf '%s\n' "$listing" | grep -c '.' || true)"
+  excess=$((count - KEEP_FULL))
+  [ "$excess" -le 0 ] && return 0
+
+  while IFS= read -r old; do
+    [ -z "$old" ] && continue
+    if [ -n "$DRY_RUN" ]; then
+      log "DRY-RUN: prune ${prefix}${old}"
+      continue
+    fi
+    log "prune ${prefix}${old}"
+    if ! rclone deletefile "${prefix}${old}" --log-file "$LOG" --log-level INFO; then
+      log "ERROR: prune failed for ${prefix}${old}"
+      FAILURES=$((FAILURES+1))
+    fi
+  done < <(printf '%s\n' "$listing" | head -n "$excess")
 }
 
 # Allow tests to source functions without running a backup.
@@ -122,7 +159,11 @@ if [ "$MODE" = "full" ]; then
       -type f \( -name wp-config.php -o -name configuration.php \) -print -quit 2>/dev/null \
       | grep -q . || continue
     parse_owner_site "$dir"
-    archive_full "$PS_OWNER" "$PS_SITE" "${dir%/}"
+    # Prune only after a successful upload: never drop old archives to make
+    # room for one that failed.
+    if archive_full "$PS_OWNER" "$PS_SITE" "${dir%/}"; then
+      prune_full "$PS_SITE"
+    fi
   done
 else
   while IFS= read -r marker; do

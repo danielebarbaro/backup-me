@@ -57,13 +57,15 @@ Config lives at `/etc/forge-backup/config` (mode `0600`). It is sourced as bash.
 The installer writes `/etc/cron.d/forge-backup`:
 
 * `uploads` daily at 02:30.
-* `full` weekly on Sunday at 03:30.
+* `full` on Sunday, Tuesday, and Friday at 03:30.
 
-Edit that file to change timing.
+Edit that file to change timing. Databases are not in here: Forge backs those up on its own schedule (Server, then Backups in the panel).
 
 ## Retention
 
-After each successful `full` upload the script prunes the site's own prefix, keeping the newest `KEEP_FULL` archives (default 14, about three months of weekly runs). Archive names are dated, so "newest" is the date in the filename. Set `KEEP_FULL=0` to disable pruning and keep everything. A failed archive skips the prune, so old copies are never dropped to make room for a backup that did not land.
+After each successful `full` upload the script prunes the site's own prefix, keeping the newest `KEEP_FULL` archives (default 14). Archive names are dated, so "newest" is the date in the filename.
+
+Retention counts archives, not days, so the window it covers depends on how often `full` runs. With the default schedule (three runs a week) 14 archives are about a month of history. Halve the frequency and the same 14 archives cover two months. Storage is driven by the count, not the frequency: 14 archives cost the same whether they span a month or a year. Set `KEEP_FULL=0` to disable pruning and keep everything. A failed archive skips the prune, so old copies are never dropped to make room for a backup that did not land.
 
 The `<server>/uploads/` prefix is a live mirror of current media, so it is never pruned.
 

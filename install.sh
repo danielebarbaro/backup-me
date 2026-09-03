@@ -97,11 +97,12 @@ chmod 755 "$BIN"
 # 6. Install cron (replaced in place, never duplicated).
 say "Installing cron at $CRON"
 cat > "$CRON" <<EOF
-# forge-backup. Managed by install.sh. uploads daily 02:30, full weekly Sun 03:30.
+# forge-backup. Managed by install.sh.
+# uploads daily 02:30, full on Sun/Tue/Fri 03:30. Databases are Forge's job.
 SHELL=/bin/bash
 PATH=/usr/local/bin:/usr/bin:/bin
-30 2 * * *   $RUN_USER  forge-backup uploads >> $LOG_PATH 2>&1
-30 3 * * 0   $RUN_USER  forge-backup full    >> $LOG_PATH 2>&1
+30 2 * * *     $RUN_USER  forge-backup uploads >> $LOG_PATH 2>&1
+30 3 * * 0,2,5 $RUN_USER  forge-backup full    >> $LOG_PATH 2>&1
 EOF
 chmod 644 "$CRON"
 

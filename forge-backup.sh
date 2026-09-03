@@ -48,7 +48,7 @@ fi
 
 # Default Joomla media dirs. Override in config if needed.
 if [ -z "${JOOMLA_DIRS+x}" ]; then
-  JOOMLA_DIRS=("images" "media" "attachments")
+  JOOMLA_DIRS=("images" "media" "attachments" "joomlatools-files")
 fi
 
 # How many dated full archives to keep per site. 0 disables pruning.

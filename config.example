@@ -21,7 +21,7 @@ LOG="/home/forge/forge-backup.log"
 WP_UPLOADS="wp-content/uploads"
 
 # Joomla media dirs, relative to a site root. Missing ones are skipped.
-JOOMLA_DIRS=("images" "media" "attachments")
+JOOMLA_DIRS=("images" "media" "attachments" "joomlatools-files")
 
 # How many dated full archives to keep per site. Older ones are deleted from
 # the bucket after a successful upload. Set to 0 to keep everything.

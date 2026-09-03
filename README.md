@@ -6,7 +6,7 @@ Auto-discovery backup of WordPress and Joomla sites on Laravel Forge servers to 
 
 Two modes:
 
-* `uploads`: incremental sync of media folders only. WordPress `wp-content/uploads`, Joomla `images`, `media`, `attachments`. Uses `rclone copy`.
+* `uploads`: incremental sync of media folders only. WordPress `wp-content/uploads`, Joomla `images`, `media`, `attachments`, `joomlatools-files`. Uses `rclone copy`.
 * `full`: a dated `.tar.gz` of the whole site, streamed directly to Spaces (`tar | rclone rcat`). Caches, `node_modules`, `.git`, and logs are excluded.
 
 It scans every home under `/home`, finds each WordPress and Joomla install (nested installs included), and backs each one up under a per server namespace in the bucket.

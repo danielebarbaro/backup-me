@@ -82,7 +82,7 @@ SERVER_NAME="$SERVER_NAME"
 SITES_ROOT="/home"
 LOG="$LOG_PATH"
 WP_UPLOADS="wp-content/uploads"
-JOOMLA_DIRS=("images" "media" "attachments")
+JOOMLA_DIRS=("images" "media" "attachments" "joomlatools-files")
 KEEP_FULL=$KEEP_FULL
 EOF
 umask 022
